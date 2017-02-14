@@ -18,7 +18,7 @@ export default {
   entry: ENTRY_PATH,
   plugins: [
       new HtmlWebpackPlugin({
-          title: 'WebGL2 sandbox',
+          title: 'WebGL Webpack Boilerplate',
           template: TEMPLATE_PATH,
           inject: 'body'
       }),
