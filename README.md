@@ -12,4 +12,7 @@ files. After that, they can be passed into `gl.shaderSource()` without further
 ado. This is made possible with the `webpack-glsl-loader` configuration in
 `webpack.config.babel.js`.
 
+See also:
+* https://github.com/grieve/webpack-glsl-loader
+
 Issues and pull requests welcome.
