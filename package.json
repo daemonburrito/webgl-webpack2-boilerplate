@@ -1,0 +1,31 @@
+{
+  "name": "webgl-webpack2-boilerplate",
+  "version": "0.0.1",
+  "description": "Webpack2 sample project with shader loading.",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "NODE_ENV=production webpack --progress --colors",
+    "watch": "webpack --progress --colors --watch",
+    "dev-server": "webpack-dev-server --progress --colors --inline --hot"
+  },
+  "author": "daemonburrito",
+  "license": "GPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/daemonburrito/webgl-webpack2-boilerplate"
+  },
+  "devDependencies": {
+    "babel-core": "^6.23.0",
+    "babel-loader": "^6.2.10",
+    "babel-preset-latest": "^6.22.0",
+    "html-webpack-plugin": "^2.28.0",
+    "webpack": "^2.2.1",
+    "webpack-dev-server": "^2.3.0",
+    "webpack-glsl-loader": "^1.0.1"
+  },
+  "dependencies": {
+    "gl-matrix": "^2.3.2"
+  }
+}
