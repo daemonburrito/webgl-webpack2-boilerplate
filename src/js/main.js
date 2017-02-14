@@ -5,7 +5,7 @@ import vertexShaderSrc from 'shaders/demo-vertex.glsl';
 import fragShaderSrc from 'shaders/demo-frag.glsl';
 
 
-const init = () => {
+const init = (...args) => {
   let canvas = document.querySelector('canvas');
   let gl = canvas.getContext('webgl');
 
