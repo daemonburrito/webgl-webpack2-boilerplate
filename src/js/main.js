@@ -1,74 +1,66 @@
-// Draws the triangle Hello World.
 import * as glMatrix from 'gl-matrix';
 
+// shader sources
 import vertexShaderSrc from 'shaders/demo-vertex.glsl';
 import fragShaderSrc from 'shaders/demo-frag.glsl';
 
+// data
+import boxData from '../data/box.json';
+
+// helpers
+import {
+  compileShader,
+  link
+} from './utils';
+
+
+const setup = gl => {
+  gl.clearColor(0.5, 0.5, 0.8, 1.0);
+  gl.clear(gl.COLOR_BUFFER_BIT, gl.DEPTH_BUFFER_BIT);
+  gl.enable(gl.DEPTH_TEST);
+  gl.enable(gl.CULL_FACE);
+  gl.frontFace(gl.CCW);
+  gl.cullFace(gl.BACK);
+}
+
 
 const init = (...args) => {
-  let canvas = document.querySelector('canvas');
-  let gl = canvas.getContext('webgl');
+  const canvas = document.querySelector('canvas'),
+    gl = canvas.getContext('webgl2');
 
-  const checkShader = (shader) => {
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-      console.error(gl.getShaderInfoLog(shader));
-      return;
-    }
-  }
+  setup(gl);
 
-  const checkLinker = (program) => {
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-      console.error(gl.getProgramInfoLog(program));
-      return;
-    }
-  }
+  const vertexShader = compileShader(gl, vertexShaderSrc, gl.VERTEX_SHADER),
+    fragShader = compileShader(gl, fragShaderSrc, gl.FRAGMENT_SHADER),
 
-  gl.clearColor(0.5, 0.5, 0.5, 1.0);
-  gl.clear(gl.COLOR_BUFFER_BIT, gl.DEPTH_BUFFER_BIT);
-
-  const vertexShader = gl.createShader(gl.VERTEX_SHADER),
-    fragShader = gl.createShader(gl.FRAGMENT_SHADER),
-    program = gl.createProgram();
-
-  gl.shaderSource(vertexShader, vertexShaderSrc);
-  gl.shaderSource(fragShader, fragShaderSrc);
-
-  gl.compileShader(vertexShader);
-  gl.compileShader(fragShader);
-  checkShader(vertexShader);
-  checkShader(fragShader);
-
-  gl.attachShader(program, vertexShader);
-  gl.attachShader(program, fragShader);
-
-  gl.linkProgram(program);
-  checkLinker(program);
-
-  let triangleVertices = new Float32Array([
-    0.0, 0.5, 0.0,    1.0, 0.0, 0.0,
-    -0.5, -0.5, 0.0,  0.0, 1.0, 0.0,
-    0.5, -0.5, 0.0,   0.0, 0.0, 1.0
-  ]);
-
-  let triangleVBO = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, triangleVBO);
-  gl.bufferData(gl.ARRAY_BUFFER, triangleVertices, gl.STATIC_DRAW);
-
-  let posAttribLocation = gl.getAttribLocation(program, 'vertPosition');
-  let colorAttribLocation = gl.getAttribLocation(program, 'vertColor');
+    program = link(gl, [vertexShader, fragShader], gl.createProgram());
 
   gl.useProgram(program);
 
-  let matWorldUniformLocation = gl.getUniformLocation(program, 'mWorld');
-  let matViewUniformLocation = gl.getUniformLocation(program, 'mView');
-  let matProjUniformLocation = gl.getUniformLocation(program, 'mProj');
+  const boxVBO = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, boxVBO);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(boxData.v), gl.STATIC_DRAW);
 
-  let worldMatrix = new Float32Array(16);
-  let viewMatrix = new Float32Array(16);
-  let projMatrix = new Float32Array(16);
+  const boxIBO = gl.createBuffer();
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, boxIBO);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
+      new Uint16Array(boxData.i),
+      gl.STATIC_DRAW);
+
+  const posAttribLocation = gl.getAttribLocation(program, 'vertPosition'),
+    colorAttribLocation = gl.getAttribLocation(program, 'vertColor'),
+
+    matWorldUniformLocation = gl.getUniformLocation(program, 'mWorld'),
+    matViewUniformLocation = gl.getUniformLocation(program, 'mView'),
+    matProjUniformLocation = gl.getUniformLocation(program, 'mProj'),
+
+    worldMatrix = new Float32Array(16),
+    viewMatrix = new Float32Array(16),
+    projMatrix = new Float32Array(16);
+
 
   glMatrix.mat4.identity(worldMatrix);
-  glMatrix.mat4.lookAt(viewMatrix, [0,0,-2], [0,0,0], [0,1,0]);
+  glMatrix.mat4.lookAt(viewMatrix, [0,0,-8], [0,0,0], [0,1,0]);
   glMatrix.mat4.perspective(projMatrix,
     glMatrix.glMatrix.toRadian(45), canvas.width/ canvas.height, 0.1, 1000);
 
@@ -98,12 +90,21 @@ const init = (...args) => {
   gl.enableVertexAttribArray(colorAttribLocation);
 
   let identityMatrix = glMatrix.mat4.identity(new Float32Array(16)),
-    angle = 0;
+    angle = 0,
+    xRotationMatrix = new Float32Array(16),
+    yRotationMatrix = new Float32Array(16);
 
   let loop = () => {
+    gl.clearColor(0.5, 0.5, 0.8, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT, gl.DEPTH_BUFFER_BIT);
+
     angle = performance.now() / 1000 / 6 * 2 * Math.PI;
-    glMatrix.mat4.rotate(worldMatrix, identityMatrix, angle, [0,1,0]);
-    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    glMatrix.mat4.rotate(xRotationMatrix, identityMatrix, angle, [0,1,0]);
+    glMatrix.mat4.rotate(yRotationMatrix, identityMatrix, angle/4, [1,0,0]);
+    glMatrix.mat4.mul(worldMatrix, yRotationMatrix, xRotationMatrix);
+
+    gl.drawElements(gl.TRIANGLES, boxData.i.length, gl.UNSIGNED_SHORT, 0);
+
     gl.uniformMatrix4fv(matWorldUniformLocation, gl.FALSE, worldMatrix);
 
     requestAnimationFrame(loop);
