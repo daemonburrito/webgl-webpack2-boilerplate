@@ -1,3 +1,4 @@
+// Draws a box Hello World
 import * as glMatrix from 'gl-matrix';
 
 // shader sources
@@ -95,8 +96,7 @@ const init = (...args) => {
     yRotationMatrix = new Float32Array(16);
 
   let loop = () => {
-    gl.clearColor(0.5, 0.5, 0.8, 1.0);
-    gl.clear(gl.COLOR_BUFFER_BIT, gl.DEPTH_BUFFER_BIT);
+    setup(gl);
 
     angle = performance.now() / 1000 / 6 * 2 * Math.PI;
     glMatrix.mat4.rotate(xRotationMatrix, identityMatrix, angle, [0,1,0]);
